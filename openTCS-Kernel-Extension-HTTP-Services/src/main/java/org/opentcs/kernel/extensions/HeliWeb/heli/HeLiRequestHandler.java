@@ -70,16 +70,32 @@ public class HeLiRequestHandler implements RequestHandler {
     service.post("/test/createMove",this::testCreateMove);
     service.get("/test/createMoveForLocal/:NAME",this::testCreateMoveForLocal);
     service.get("/test/createOrderForLocal/:NAME",this::testCreateOrderForLocal);
+    service.get("/test/createOrderForLocalByRandom/:NAME",this::testCreateOrderForLocalByRandom);
     service.get(("/test/init/:NAME"),this::testInit);
     service.get(("/test/dispatcher"),this::testDispatcher);
   }
+
 
   private Object testCreateOrderForLocal(Request request, Response response) {
     String params = request.params(":NAME");
     if(params==null)
       return "failed! not have order num params";
+    String[] split = params.split("-");
+    if(split.length!=5)
+      return "param error";
     else
-      orderHandler.createOrderForLocal(Integer.valueOf(params));
+      orderHandler.createOrderForLocal(Integer.valueOf(split[0]),Integer.valueOf(split[1]),Integer.valueOf(split[2]),Integer.valueOf(split[3]),Integer.valueOf(split[4]));
+    return "ok";
+  }
+
+
+
+  private Object testCreateOrderForLocalByRandom(Request request, Response response) {
+    String params = request.params(":NAME");
+    if(params==null)
+      return "failed! not have order num params";
+    else
+      orderHandler.createOrderForLocalByRandom(Integer.valueOf(params));
     return "ok";
   }
 

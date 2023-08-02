@@ -162,18 +162,44 @@ public class HeLiHandler {
 
 
   /**
-   * 创建取放货订单
+   * 创建随机取放货订单
    * @param orderNum
    */
-  public void createOrderForLocal(Integer orderNum) {
+  public void createOrderForLocalByRandom(Integer orderNum) {
     Set<Location> locations = orderService.fetchObjects(Location.class);
     String orderPrefixName = "-fsy-"+UUID.randomUUID();
-    Random random = new Random();
+    Random random1 = new Random();
+    Random random2 = new Random();
     for (Integer i = 0; i < orderNum; i++) {
-      int startLocationNum = random.nextInt(locations.size()) + 1;
-      int endLocationNum = random.nextInt(locations.size()) + 1;
+      int startLocationNum = random1.nextInt(locations.size()) + 1;
+      int endLocationNum = random2.nextInt(locations.size()) + 1;
       String startLocationName = locations.stream().skip(startLocationNum - 1).findFirst().get().getName();
       String endLocationName = locations.stream().skip(endLocationNum - 1).findFirst().get().getName();
+      PostTransportOrderRequestTO postTransportOrderRequestTO = createTestTransportOrderRequestTO(startLocationName,endLocationName);
+      orderHandler.createOrder(i+orderPrefixName,postTransportOrderRequestTO);
+    }
+  }
+
+  /**
+   * 创建有序取放货任务
+   * @param startSIndex
+   * @param startEIndex
+   * @param endSIndex
+   * @param endEIndex
+   * @param orderNum
+   */
+  public void createOrderForLocal(Integer startSIndex,Integer startEIndex,Integer endSIndex,Integer endEIndex,Integer orderNum) {
+    Set<Location> locations = orderService.fetchObjects(Location.class);
+    String orderPrefixName = "-fsy-"+UUID.randomUUID();
+    Random random1 = new Random();
+    Random random2 = new Random();
+    for (Integer i = 0; i < orderNum; i++) {
+      if(locations.size()==0)
+        break;
+      int startLocationNum = startSIndex+random1.nextInt(startEIndex-startSIndex) + 1;
+      int endLocationNum = endSIndex+random2.nextInt(endEIndex-endSIndex)+1;
+      String startLocationName = locations.stream().filter(location -> startLocationNum == Integer.parseInt(location.getName().split("-")[1])).findFirst().get().getName();
+      String endLocationName = locations.stream().filter(location -> endLocationNum == Integer.parseInt(location.getName().split("-")[1])).findFirst().get().getName();
       PostTransportOrderRequestTO postTransportOrderRequestTO = createTestTransportOrderRequestTO(startLocationName,endLocationName);
       orderHandler.createOrder(i+orderPrefixName,postTransportOrderRequestTO);
     }
@@ -186,7 +212,7 @@ public class HeLiHandler {
     startDestination.setLocationName(startLocationName);
     startDestination.setOperation("load");
     Destination endDestination = new Destination();
-    endDestination.setLocationName(startLocationName);
+    endDestination.setLocationName(endLocationName);
     endDestination.setOperation("unload");
     postTransportOrderRequestTO.setDestinations(Arrays.asList(startDestination,endDestination));
     return postTransportOrderRequestTO;
