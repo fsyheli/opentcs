@@ -8,6 +8,7 @@
 package org.opentcs.modeleditor.persistence;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
@@ -36,6 +37,8 @@ import org.opentcs.guing.base.model.elements.VehicleModel;
 import org.opentcs.guing.common.application.StatusPanel;
 import org.opentcs.guing.common.model.SystemModel;
 import org.opentcs.modeleditor.persistence.unified.PlantModelElementConverter;
+import org.opentcs.modeleditor.util.AutoCreateHeLiBlock;
+import org.opentcs.modeleditor.util.ModelEditorUtilConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,16 +65,21 @@ public class ModelImportAdapter {
    * The status panel of the plant overview.
    */
   private final StatusPanel statusPanel;
+  /**
+   * 这个是HELI的配置
+   */
+  private final ModelEditorUtilConfig config;
 
   @Inject
   public ModelImportAdapter(Provider<SystemModel> systemModelProvider,
                             PlantModelElementConverter elementConverter,
                             ModelValidator validator,
-                            StatusPanel statusPanel) {
+                            StatusPanel statusPanel,ModelEditorUtilConfig config) {
     this.systemModelProvider = requireNonNull(systemModelProvider, "systemModelProvider");
     this.elementConverter = requireNonNull(elementConverter, "elementConverter");
     this.validator = requireNonNull(validator, "validator");
     this.statusPanel = requireNonNull(statusPanel, "statusPanel");
+    this.config = requireNonNull(config, "config");
   }
 
   /**
@@ -101,7 +109,10 @@ public class ModelImportAdapter {
     importLocationTypes(model, systemModel, collectedErrorMessages);
     importLocations(model, systemModel, collectedErrorMessages);
     importBlocks(model, systemModel, collectedErrorMessages);
-
+    //todo:进行自动block
+    if (config.useAutoBlock()) {
+      importHeLiBlocks(systemModel,collectedErrorMessages);
+    }
     importProperties(model, systemModel);
 
     // If any errors occurred, show the dialog with all errors listed
@@ -110,6 +121,24 @@ public class ModelImportAdapter {
     }
 
     return systemModel;
+  }
+
+  /**
+   * 自动创建block的逻辑代码
+   * @param systemModel
+   * @param collectedErrorMessages
+   */
+  private void importHeLiBlocks(SystemModel systemModel, Set<String> collectedErrorMessages) {
+    //自动进行block创建的方式
+    AutoCreateHeLiBlock autoCreateHeLiBlock = new AutoCreateHeLiBlock(systemModel);
+    autoCreateHeLiBlock.createHeLiBlocks();
+    List<BlockCreationTO> blockCreationTOs = autoCreateHeLiBlock.getBlockCreationTOs();
+    for (BlockCreationTO blockCreationTO : blockCreationTOs) {
+      BlockModel blockModel = elementConverter.importBlock(blockCreationTO);
+      if (validModelComponent(blockModel, systemModel, collectedErrorMessages)) {
+        addBlockToModel(blockModel, systemModel);
+      }
+    }
   }
 
   private void importProperties(PlantModelCreationTO model, SystemModel systemModel) {

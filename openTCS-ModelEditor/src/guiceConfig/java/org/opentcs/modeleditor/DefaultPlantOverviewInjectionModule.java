@@ -35,6 +35,7 @@ import org.opentcs.modeleditor.model.ModelInjectionModule;
 import org.opentcs.modeleditor.persistence.DefaultPersistenceInjectionModule;
 import org.opentcs.modeleditor.transport.TransportInjectionModule;
 import org.opentcs.modeleditor.util.ElementNamingSchemeConfiguration;
+import org.opentcs.modeleditor.util.ModelEditorUtilConfig;
 import org.opentcs.modeleditor.util.PlantOverviewModelingApplicationConfiguration;
 import org.opentcs.modeleditor.util.UtilInjectionModule;
 import org.opentcs.util.ClassMatcher;
@@ -97,10 +98,18 @@ public class DefaultPlantOverviewInjectionModule
     configureThemes(configuration);
     configureSocketConnections();
     configureNamingConfiguration();
-
+    configureUtilConfiguration();
     bind(new TypeLiteral<List<ConnectionParamSet>>() {
     })
         .toInstance(baseConfiguration.connectionBookmarks());
+  }
+
+  private void configureUtilConfiguration() {
+    ModelEditorUtilConfig configuration
+        = getConfigBindingProvider().get(ModelEditorUtilConfig.PREFIX,
+        ModelEditorUtilConfig.class);
+    bind(ModelEditorUtilConfig.class)
+        .toInstance(configuration);
   }
 
   private void configureNamingConfiguration() {

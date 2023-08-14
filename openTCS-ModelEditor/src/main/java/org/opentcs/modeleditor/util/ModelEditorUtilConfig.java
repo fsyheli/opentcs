@@ -1,0 +1,30 @@
+/**
+ * Copyright (c) The openTCS Authors.
+ *
+ * This program is free software and subject to the MIT license. (For details,
+ * see the licensing information (LICENSE.txt) you should have received with
+ * this copy of the software.)
+ */
+package org.opentcs.modeleditor.util;
+
+import org.opentcs.configuration.ConfigurationEntry;
+import org.opentcs.configuration.ConfigurationPrefix;
+
+/**
+ * Provides methods to configure the naming convention for model elements.
+ */
+@ConfigurationPrefix(ModelEditorUtilConfig.PREFIX)
+public interface ModelEditorUtilConfig {
+
+  /**
+   * This configuration's prefix.
+   */
+  String PREFIX = "modelEditorUtil";
+
+  @ConfigurationEntry(
+      type = "Boolean",
+      description = " whether use auto block",
+      orderKey = "0_point_0")
+  Boolean useAutoBlock();
+
+}

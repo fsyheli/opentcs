@@ -1,6 +1,6 @@
 /**
  * Copyright (c) The openTCS Authors.
- *
+ * <p>
  * This program is free software and subject to the MIT license. (For details,
  * see the licensing information (LICENSE.txt) you should have received with
  * this copy of the software.)
@@ -8,18 +8,14 @@
 package org.opentcs.kernel.workingset;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import static java.util.Objects.requireNonNull;
-import java.util.Set;
+
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+
 import org.opentcs.access.to.model.BlockCreationTO;
 import org.opentcs.access.to.model.LocationCreationTO;
 import org.opentcs.access.to.model.LocationTypeCreationTO;
@@ -53,10 +49,14 @@ import org.opentcs.data.order.TransportOrder;
 import org.opentcs.data.peripherals.PeripheralJob;
 import org.opentcs.data.peripherals.PeripheralOperation;
 import org.opentcs.drivers.vehicle.LoadHandlingDevice;
+
 import static org.opentcs.util.Assertions.checkState;
+
+import org.opentcs.kernel.KernelApplicationConfiguration;
 import org.opentcs.util.Colors;
 import org.opentcs.util.annotations.ScheduledApiChange;
 import org.opentcs.util.event.EventHandler;
+import org.opentcs.util.heliutil.HeLiResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,6 +84,8 @@ public class PlantModelManager
    */
   private Map<String, String> properties = new HashMap<>();
 
+  private final KernelApplicationConfiguration configuration;
+
   /**
    * Creates a new model.
    *
@@ -92,8 +94,10 @@ public class PlantModelManager
    */
   @Inject
   public PlantModelManager(@Nonnull TCSObjectRepository objectRepo,
-                           @Nonnull @ApplicationEventBus EventHandler eventHandler) {
+                           @Nonnull @ApplicationEventBus EventHandler eventHandler,
+                           KernelApplicationConfiguration configuration) {
     super(objectRepo, eventHandler);
+    this.configuration = requireNonNull(configuration, "configuration");
   }
 
   /**
@@ -150,8 +154,8 @@ public class PlantModelManager
     for (TCSObject<?> curObject : objects) {
       getObjectRepo().removeObject(curObject.getReference());
       emitObjectEvent(null,
-                      curObject,
-                      TCSObjectEvent.Type.OBJECT_REMOVED);
+          curObject,
+          TCSObjectEvent.Type.OBJECT_REMOVED);
     }
   }
 
@@ -188,6 +192,7 @@ public class PlantModelManager
     for (BlockCreationTO block : to.getBlocks()) {
       createBlock(block);
     }
+
     for (org.opentcs.access.to.model.GroupCreationTO group : to.getGroups()) {
       createGroup(group);
     }
@@ -214,8 +219,8 @@ public class PlantModelManager
     Path path = previousState.withLocked(newLocked);
     getObjectRepo().replaceObject(path.withLocked(newLocked));
     emitObjectEvent(path,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return path;
   }
 
@@ -234,8 +239,8 @@ public class PlantModelManager
     Location location = previousState.withLocked(newLocked);
     getObjectRepo().replaceObject(location);
     emitObjectEvent(location,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return location;
   }
 
@@ -255,8 +260,8 @@ public class PlantModelManager
     );
     getObjectRepo().replaceObject(location);
     emitObjectEvent(location,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return location;
   }
 
@@ -277,8 +282,8 @@ public class PlantModelManager
     );
     getObjectRepo().replaceObject(location);
     emitObjectEvent(location,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return location;
   }
 
@@ -299,8 +304,8 @@ public class PlantModelManager
     );
     getObjectRepo().replaceObject(location);
     emitObjectEvent(location,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return location;
   }
 
@@ -321,8 +326,8 @@ public class PlantModelManager
     );
     getObjectRepo().replaceObject(location);
     emitObjectEvent(location,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return location;
   }
 
@@ -341,8 +346,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withEnergyLevel(energyLevel);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -360,15 +365,15 @@ public class PlantModelManager
     Vehicle previousState = getObjectRepo().getObject(Vehicle.class, ref);
 
     LOG.info("Vehicle's recharge operation changes: {} -- {} -> {}",
-             previousState.getName(),
-             previousState.getRechargeOperation(),
-             rechargeOperation);
+        previousState.getName(),
+        previousState.getRechargeOperation(),
+        rechargeOperation);
 
     Vehicle vehicle = previousState.withRechargeOperation(rechargeOperation);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -387,8 +392,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withLoadHandlingDevices(devices);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -406,15 +411,15 @@ public class PlantModelManager
     Vehicle previousState = getObjectRepo().getObject(Vehicle.class, ref);
 
     LOG.debug("Vehicle's state changes: {} -- {} -> {}",
-              previousState.getName(),
-              previousState.getState(),
-              newState);
+        previousState.getName(),
+        previousState.getState(),
+        newState);
 
     Vehicle vehicle = previousState.withState(newState);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -432,15 +437,15 @@ public class PlantModelManager
     Vehicle previousState = getObjectRepo().getObject(Vehicle.class, ref);
 
     LOG.debug("Vehicle's length changes: {} -- {} -> {}",
-              previousState.getName(),
-              previousState.getLength(),
-              newLength);
+        previousState.getName(),
+        previousState.getLength(),
+        newLength);
 
     Vehicle vehicle = previousState.withLength(newLength);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -458,15 +463,15 @@ public class PlantModelManager
     Vehicle previousState = getObjectRepo().getObject(Vehicle.class, ref);
 
     LOG.info("Vehicle's integration level changes: {} -- {} -> {}",
-             previousState.getName(),
-             previousState.getIntegrationLevel(),
-             integrationLevel);
+        previousState.getName(),
+        previousState.getIntegrationLevel(),
+        integrationLevel);
 
     Vehicle vehicle = previousState.withIntegrationLevel(integrationLevel);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -484,15 +489,15 @@ public class PlantModelManager
     Vehicle previousState = getObjectRepo().getObject(Vehicle.class, ref);
 
     LOG.info("Vehicle's paused state changes: {} -- {} -> {}",
-             previousState.getName(),
-             previousState.isPaused(),
-             paused);
+        previousState.getName(),
+        previousState.isPaused(),
+        paused);
 
     Vehicle vehicle = previousState.withPaused(paused);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -511,8 +516,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withProcState(newState);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -530,15 +535,15 @@ public class PlantModelManager
     Vehicle previousState = getObjectRepo().getObject(Vehicle.class, ref);
 
     LOG.info("Vehicle's allowed order types change: {} -- {} -> {}",
-             previousState.getName(),
-             previousState.getAllowedOrderTypes(),
-             allowedOrderTypes);
+        previousState.getName(),
+        previousState.getAllowedOrderTypes(),
+        allowedOrderTypes);
 
     Vehicle vehicle = previousState.withAllowedOrderTypes(allowedOrderTypes);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -556,9 +561,9 @@ public class PlantModelManager
     Vehicle vehicle = getObjectRepo().getObject(Vehicle.class, ref);
 
     LOG.debug("Vehicle's position changes: {} -- {} -> {}",
-              vehicle.getName(),
-              vehicle.getCurrentPosition() == null ? null : vehicle.getCurrentPosition().getName(),
-              newPosRef == null ? null : newPosRef.getName());
+        vehicle.getName(),
+        vehicle.getCurrentPosition() == null ? null : vehicle.getCurrentPosition().getName(),
+        newPosRef == null ? null : newPosRef.getName());
 
     Vehicle previousVehicleState = vehicle;
     // If the vehicle was occupying a point before, clear it and send an event.
@@ -568,8 +573,8 @@ public class PlantModelManager
       oldVehiclePos = oldVehiclePos.withOccupyingVehicle(null);
       getObjectRepo().replaceObject(oldVehiclePos);
       emitObjectEvent(oldVehiclePos,
-                      previousPointState,
-                      TCSObjectEvent.Type.OBJECT_MODIFIED);
+          previousPointState,
+          TCSObjectEvent.Type.OBJECT_MODIFIED);
     }
     // If the vehicle is occupying a point now, set that and send an event.
     if (newPosRef != null) {
@@ -578,14 +583,14 @@ public class PlantModelManager
       newVehiclePos = newVehiclePos.withOccupyingVehicle(ref);
       getObjectRepo().replaceObject(newVehiclePos);
       emitObjectEvent(newVehiclePos,
-                      previousPointState,
-                      TCSObjectEvent.Type.OBJECT_MODIFIED);
+          previousPointState,
+          TCSObjectEvent.Type.OBJECT_MODIFIED);
     }
     vehicle = vehicle.withCurrentPosition(newPosRef);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousVehicleState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousVehicleState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
 
     return vehicle;
   }
@@ -606,8 +611,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withNextPosition(newPosition);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -626,8 +631,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withPrecisePosition(newPosition);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -646,8 +651,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withOrientationAngle(angle);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -667,15 +672,14 @@ public class PlantModelManager
     if (orderRef == null) {
       vehicle = vehicle.withTransportOrder(null);
       getObjectRepo().replaceObject(vehicle);
-    }
-    else {
+    } else {
       TransportOrder order = getObjectRepo().getObject(TransportOrder.class, orderRef);
       vehicle = vehicle.withTransportOrder(order.getReference());
       getObjectRepo().replaceObject(vehicle);
     }
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -695,15 +699,14 @@ public class PlantModelManager
     if (seqRef == null) {
       vehicle = vehicle.withOrderSequence(null);
       getObjectRepo().replaceObject(vehicle);
-    }
-    else {
+    } else {
       OrderSequence seq = getObjectRepo().getObject(OrderSequence.class, seqRef);
       vehicle = vehicle.withOrderSequence(seq.getReference());
       getObjectRepo().replaceObject(vehicle);
     }
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -723,8 +726,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withRouteProgressIndex(index);
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -743,8 +746,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withClaimedResources(unmodifiableCopy(resources));
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -763,8 +766,8 @@ public class PlantModelManager
     Vehicle vehicle = previousState.withAllocatedResources(unmodifiableCopy(resources));
     getObjectRepo().replaceObject(vehicle);
     emitObjectEvent(vehicle,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return vehicle;
   }
 
@@ -830,7 +833,7 @@ public class PlantModelManager
         .map(
             operationTO -> new PeripheralOperation(
                 getObjectRepo().getObject(Location.class,
-                                          operationTO.getLocationName()).getReference(),
+                    operationTO.getLocationName()).getReference(),
                 operationTO.getOperation(),
                 operationTO.getExecutionTrigger(),
                 operationTO.isCompletionRequired())
@@ -855,8 +858,8 @@ public class PlantModelManager
               .withType(curPoint.getType())
               .withProperties(curPoint.getProperties())
               .withLayout(new PointCreationTO.Layout(curPoint.getLayout().getPosition(),
-                                                     curPoint.getLayout().getLabelOffset(),
-                                                     curPoint.getLayout().getLayerId()))
+                  curPoint.getLayout().getLabelOffset(),
+                  curPoint.getLayout().getLayerId()))
       );
     }
 
@@ -877,8 +880,8 @@ public class PlantModelManager
     for (Path curPath : paths) {
       result.add(
           new PathCreationTO(curPath.getName(),
-                             curPath.getSourcePoint().getName(),
-                             curPath.getDestinationPoint().getName())
+              curPath.getSourcePoint().getName(),
+              curPath.getDestinationPoint().getName())
               .withLength(curPath.getLength())
               .withMaxVelocity(curPath.getMaxVelocity())
               .withMaxReverseVelocity(curPath.getMaxReverseVelocity())
@@ -886,8 +889,8 @@ public class PlantModelManager
               .withPeripheralOperations(getPeripheralOperations(curPath))
               .withProperties(curPath.getProperties())
               .withLayout(new PathCreationTO.Layout(curPath.getLayout().getConnectionType(),
-                                                    curPath.getLayout().getControlPoints(),
-                                                    curPath.getLayout().getLayerId()))
+                  curPath.getLayout().getControlPoints(),
+                  curPath.getLayout().getLayerId()))
       );
     }
 
@@ -972,18 +975,18 @@ public class PlantModelManager
     for (Location curLoc : locations) {
       result.add(
           new LocationCreationTO(curLoc.getName(),
-                                 curLoc.getType().getName(),
-                                 curLoc.getPosition())
+              curLoc.getType().getName(),
+              curLoc.getPosition())
               .withLinks(curLoc.getAttachedLinks().stream()
                   .collect(Collectors.toMap(link -> link.getPoint().getName(),
-                                            Location.Link::getAllowedOperations)))
+                      Location.Link::getAllowedOperations)))
               .withLocked(curLoc.isLocked())
               .withProperties(curLoc.getProperties())
               .withLayout(
                   new LocationCreationTO.Layout(curLoc.getLayout().getPosition(),
-                                                curLoc.getLayout().getLabelOffset(),
-                                                curLoc.getLayout().getLocationRepresentation(),
-                                                curLoc.getLayout().getLayerId())
+                      curLoc.getLayout().getLabelOffset(),
+                      curLoc.getLayout().getLocationRepresentation(),
+                      curLoc.getLayout().getLayerId())
               )
       );
     }
@@ -1050,8 +1053,8 @@ public class PlantModelManager
   private VisualLayoutCreationTO getVisualLayout() {
     Set<VisualLayout> layouts = getObjectRepo().getObjects(VisualLayout.class);
     checkState(layouts.size() == 1,
-               "There has to be one, and only one, visual layout. Number of visual layouts: %d",
-               layouts.size());
+        "There has to be one, and only one, visual layout. Number of visual layouts: %d",
+        layouts.size());
     VisualLayout layout = layouts.iterator().next();
 
     return new VisualLayoutCreationTO(layout.getName())
@@ -1081,8 +1084,8 @@ public class PlantModelManager
 
     getObjectRepo().addObject(newLayout);
     emitObjectEvent(newLayout,
-                    null,
-                    TCSObjectEvent.Type.OBJECT_CREATED);
+        null,
+        TCSObjectEvent.Type.OBJECT_CREATED);
     // Return the newly created layout.
     return newLayout;
   }
@@ -1104,8 +1107,8 @@ public class PlantModelManager
         .withVehicleOrientationAngle(to.getVehicleOrientationAngle())
         .withProperties(to.getProperties())
         .withLayout(new Point.Layout(to.getLayout().getPosition(),
-                                     to.getLayout().getLabelOffset(),
-                                     to.getLayout().getLayerId()));
+            to.getLayout().getLabelOffset(),
+            to.getLayout().getLayerId()));
     getObjectRepo().addObject(newPoint);
     emitObjectEvent(newPoint, null, TCSObjectEvent.Type.OBJECT_CREATED);
     // Return the newly created point.
@@ -1127,8 +1130,8 @@ public class PlantModelManager
     Point srcPoint = getObjectRepo().getObject(Point.class, to.getSrcPointName());
     Point destPoint = getObjectRepo().getObject(Point.class, to.getDestPointName());
     Path newPath = new Path(to.getName(),
-                            srcPoint.getReference(),
-                            destPoint.getReference())
+        srcPoint.getReference(),
+        destPoint.getReference())
         .withLength(to.getLength())
         .withMaxVelocity(to.getMaxVelocity())
         .withMaxReverseVelocity(to.getMaxReverseVelocity())
@@ -1136,14 +1139,14 @@ public class PlantModelManager
         .withProperties(to.getProperties())
         .withLocked(to.isLocked())
         .withLayout(new Path.Layout(to.getLayout().getConnectionType(),
-                                    to.getLayout().getControlPoints(),
-                                    to.getLayout().getLayerId()));
+            to.getLayout().getControlPoints(),
+            to.getLayout().getLayerId()));
 
     getObjectRepo().addObject(newPath);
 
     emitObjectEvent(newPath,
-                    null,
-                    TCSObjectEvent.Type.OBJECT_CREATED);
+        null,
+        TCSObjectEvent.Type.OBJECT_CREATED);
 
     addPointOutgoingPath(srcPoint.getReference(), newPath.getReference());
     addPointIncomingPath(destPoint.getReference(), newPath.getReference());
@@ -1168,8 +1171,8 @@ public class PlantModelManager
         .withLayout(new LocationType.Layout(to.getLayout().getLocationRepresentation()));
     getObjectRepo().addObject(newType);
     emitObjectEvent(newType,
-                    null,
-                    TCSObjectEvent.Type.OBJECT_CREATED);
+        null,
+        TCSObjectEvent.Type.OBJECT_CREATED);
     return newType;
   }
 
@@ -1190,9 +1193,9 @@ public class PlantModelManager
         .withLocked(to.isLocked())
         .withProperties(to.getProperties())
         .withLayout(new Location.Layout(to.getLayout().getPosition(),
-                                        to.getLayout().getLabelOffset(),
-                                        to.getLayout().getLocationRepresentation(),
-                                        to.getLayout().getLayerId()));
+            to.getLayout().getLabelOffset(),
+            to.getLayout().getLocationRepresentation(),
+            to.getLayout().getLayerId()));
 
     Set<Location.Link> locationLinks = new HashSet<>();
     for (Map.Entry<String, Set<String>> linkEntry : to.getLinks().entrySet()) {
@@ -1205,8 +1208,8 @@ public class PlantModelManager
 
     getObjectRepo().addObject(newLocation);
     emitObjectEvent(newLocation,
-                    null,
-                    TCSObjectEvent.Type.OBJECT_CREATED);
+        null,
+        TCSObjectEvent.Type.OBJECT_CREATED);
 
     // Add the location's links to the respective points, too.
     for (Location.Link link : locationLinks) {
@@ -1220,8 +1223,8 @@ public class PlantModelManager
       getObjectRepo().replaceObject(point);
 
       emitObjectEvent(point,
-                      previousPointState,
-                      TCSObjectEvent.Type.OBJECT_MODIFIED);
+          previousPointState,
+          TCSObjectEvent.Type.OBJECT_MODIFIED);
     }
 
     return newLocation;
@@ -1249,8 +1252,8 @@ public class PlantModelManager
         .withLayout(new Vehicle.Layout(to.getLayout().getRouteColor()));
     getObjectRepo().addObject(newVehicle);
     emitObjectEvent(newVehicle,
-                    null,
-                    TCSObjectEvent.Type.OBJECT_CREATED);
+        null,
+        TCSObjectEvent.Type.OBJECT_CREATED);
     return newVehicle;
   }
 
@@ -1280,8 +1283,8 @@ public class PlantModelManager
         .withLayout(new Block.Layout(to.getLayout().getColor()));
     getObjectRepo().addObject(newBlock);
     emitObjectEvent(newBlock,
-                    null,
-                    TCSObjectEvent.Type.OBJECT_CREATED);
+        null,
+        TCSObjectEvent.Type.OBJECT_CREATED);
     // Return the newly created block.
     return newBlock;
   }
@@ -1311,8 +1314,8 @@ public class PlantModelManager
         .withProperties(to.getProperties());
     getObjectRepo().addObject(newGroup);
     emitObjectEvent(newGroup,
-                    null,
-                    TCSObjectEvent.Type.OBJECT_CREATED);
+        null,
+        TCSObjectEvent.Type.OBJECT_CREATED);
     // Return the newly created group.
     return newGroup;
   }
@@ -1327,23 +1330,19 @@ public class PlantModelManager
   @ScheduledApiChange(details = "Will be removed.", when = "6.0")
   private void overrideLayoutData(VisualLayoutCreationTO layout) {
     for (org.opentcs.access.to.model.ModelLayoutElementCreationTO mleTO
-             : layout.getModelElements()) {
+        : layout.getModelElements()) {
       TCSObject<?> object = getObjectRepo().getObject(mleTO.getName());
       Map<String, String> props = mleTO.getProperties();
 
       if (object instanceof Point) {
         overridePointLayoutData((Point) object, props);
-      }
-      else if (object instanceof Path) {
+      } else if (object instanceof Path) {
         overridePathLayoutData((Path) object, props);
-      }
-      else if (object instanceof Location) {
+      } else if (object instanceof Location) {
         overrideLocationLayoutData((Location) object, props);
-      }
-      else if (object instanceof Block) {
+      } else if (object instanceof Block) {
         overrideBlockLayoutData((Block) object, props);
-      }
-      else if (object instanceof Vehicle) {
+      } else if (object instanceof Vehicle) {
         overrideVehicleLayoutData((Vehicle) object, props);
       }
     }
@@ -1365,8 +1364,8 @@ public class PlantModelManager
         : oldPoint.getLayout().getLabelOffset().getY();
     Point newPoint = oldPoint.withLayout(
         new Point.Layout(new Couple(positionX, positionY),
-                         new Couple(labelOffsetX, labelOffsetY),
-                         oldPoint.getLayout().getLayerId())
+            new Couple(labelOffsetX, labelOffsetY),
+            oldPoint.getLayout().getLayerId())
     );
     getObjectRepo().replaceObject(newPoint);
     emitObjectEvent(newPoint, oldPoint, TCSObjectEvent.Type.OBJECT_MODIFIED);
@@ -1376,7 +1375,7 @@ public class PlantModelManager
       throws IllegalArgumentException {
     String connectionTypeString
         = properties.getOrDefault(ElementPropKeys.PATH_CONN_TYPE,
-                                  oldPath.getLayout().getConnectionType().name());
+        oldPath.getLayout().getConnectionType().name());
     Path.Layout.ConnectionType connectionType;
     switch (connectionTypeString) {
       case "DIRECT":
@@ -1408,14 +1407,14 @@ public class PlantModelManager
           .map(controlPointString -> {
             String[] coordinateStrings = controlPointString.split(",");
             return new Couple(Long.parseLong(coordinateStrings[0]),
-                              Long.parseLong(coordinateStrings[1]));
+                Long.parseLong(coordinateStrings[1]));
           })
           .collect(Collectors.toList());
     }
 
     Path newPath = oldPath.withLayout(new Path.Layout(connectionType,
-                                                      controlPoints,
-                                                      oldPath.getLayout().getLayerId()));
+        controlPoints,
+        oldPath.getLayout().getLayerId()));
 
     getObjectRepo().replaceObject(newPath);
     emitObjectEvent(newPath, oldPath, TCSObjectEvent.Type.OBJECT_MODIFIED);
@@ -1437,9 +1436,9 @@ public class PlantModelManager
         : oldLocation.getLayout().getLabelOffset().getY();
     Location newLocation = oldLocation.withLayout(
         new Location.Layout(new Couple(positionX, positionY),
-                            new Couple(labelOffsetX, labelOffsetY),
-                            oldLocation.getLayout().getLocationRepresentation(),
-                            oldLocation.getLayout().getLayerId())
+            new Couple(labelOffsetX, labelOffsetY),
+            oldLocation.getLayout().getLocationRepresentation(),
+            oldLocation.getLayout().getLayerId())
     );
     getObjectRepo().replaceObject(newLocation);
     emitObjectEvent(newLocation, oldLocation, TCSObjectEvent.Type.OBJECT_MODIFIED);
@@ -1490,8 +1489,8 @@ public class PlantModelManager
     point = point.withIncomingPaths(incomingPaths);
     getObjectRepo().replaceObject(point);
     emitObjectEvent(point,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return point;
   }
 
@@ -1519,8 +1518,8 @@ public class PlantModelManager
     point = point.withOutgoingPaths(outgoingPaths);
     getObjectRepo().replaceObject(point);
     emitObjectEvent(point,
-                    previousState,
-                    TCSObjectEvent.Type.OBJECT_MODIFIED);
+        previousState,
+        TCSObjectEvent.Type.OBJECT_MODIFIED);
     return point;
   }
 
