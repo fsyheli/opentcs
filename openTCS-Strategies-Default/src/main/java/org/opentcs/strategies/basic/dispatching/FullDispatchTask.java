@@ -126,11 +126,14 @@ public class FullDispatchTask
   @Override
   public final void run() {
     LOG.debug("Starting full dispatch run...");
-
+    //这里是判断订单是否可以进行路由操作，如果正常会将订单的状态改变为active，如果没有依赖的订单号会将订单状态改为DISPATCHABLE状态 （这里面订单可以根据dependencies参数进行依赖）
     checkNewOrdersPhase.run();
     // Check what vehicles involved in a process should do.
+    //车必须已经在处理一个订单中的任务逻辑了(AWAITING_ORDER)----这个处理当小车已经开始直行订单的时候在中途进行取消订单的场景。
     finishWithdrawalsPhase.run();
+    //小车必须已经在处理一个订单中的任务逻辑(AWAITING_ORDER)----这个是处理一个订单中的接下来的订单任务。
     assignNextDriveOrdersPhase.run();
+    //触发那些具有任务连并且处于idea状态下的小车进行执行任务链后面的任务。
     assignSequenceSuccessorsPhase.run();
     // Check what vehicles not already in a process should do.
     assignOrders();
@@ -147,7 +150,9 @@ public class FullDispatchTask
    * </p>
    */
   protected void assignOrders() {
+    //先分配指定中的订单
     assignReservedOrdersPhase.run();
+    //分配空闲自动分配的订单
     assignFreeOrdersPhase.run();
   }
 
